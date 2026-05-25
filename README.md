@@ -15,36 +15,111 @@ To stop conflicts from happening with your note files, you can create a `.gitatt
 ```gitattributes
 *.md merge=union
 ```
-## Termux Setup
+
+## Install layout
+
+All app state and scripts live under a fixed directory (not configurable — Tasker paths depend on it):
+
+```text
+~/.obsidian_android_sync_state/
+  .env                 # your paths (see .env.example)
+  sync.log
+  sync-vaults.lock
+  tmp/
+  git-repos/           # bare git objects after worktree-fix
+  bin/                 # installed scripts (run setup to populate)
+```
+
+Configure vault and script-repo locations in `~/.obsidian_android_sync_state/.env`:
+
+- `SCRIPTS_REPO_PATH` — git clone of this repository (any path)
+- `OBSIDIAN_DIR_PATH` — folder where Obsidian opens vaults (worktree checkouts)
+
+These paths are independent; they do not need to share a parent directory.
+
+## Termux Setup (fresh install)
+
 1. Install [F-Droid](https://f-droid.org/en/).
-2. Install [Termux](https://f-droid.org/en/packages/com.termux/), [Termux:Tasker](https://f-droid.org/en/packages/com.termux.tasker/), and [Termux:API](https://f-droid.org/en/packages/com.termux.api/) apps from F-Droid (NOT from the Play Store).
+2. Install [Termux](https://f-droid.org/en/packages/com.termux/), [Termux:Tasker](https://f-droid.org/en/packages/com.termux.tasker/), and [Termux:API](https://f-droid.org/en/packages/com.termux.api/) from F-Droid (NOT from the Play Store).
 
-   The next steps will mostly ask you to run commands in Termux.
-3. Run `termux-setup-storage` and give access to files.
-4. Run `pkg update && pkg upgrade -y && pkg install -y git openssh termux-api` to install packages. Press *Enter* any time it pauses with a question.
-5. Run `mkdir -p /storage/emulated/0/repos/Obsidian` to create the directories used for repositories.
-6. Run `git clone https://github.com/DovieW/obsidian-android-sync.git ~/storage/shared/repos/obsidian-android-sync` to clone this repo into the repos directory.
+   The next steps are run in Termux.
+3. Run `termux-setup-storage` and grant file access.
+4. Run `pkg update && pkg upgrade -y && pkg install -y git openssh termux-api`.
+5. Clone this repo anywhere (example path):
 
-   Be aware that the next step will set [safe.directory](https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory) to '*'.
-7. Run the setup script: `cp "/storage/emulated/0/repos/obsidian-android-sync/setup" ~/ && chmod +x "$HOME/setup" && source "$HOME/setup"`. Type `yes` and hit *Enter* if prompted.
-8. The above command copied an SSH public key to your clipboard (or was displayed to the screen), paste this into your Git host's SSH key authentication setting (eg [Github](https://github.com/settings/keys)). If you want to copy the SSH key again, run the setup script again by simply running `setup`. The long verison of the setup command (above) is not needed anymore.
-9. In Termux, you should now be in the Obsidian directory (verify with `pwd`) where you should now clone your Obsidian vaults. Try not to put any special characters (that are recognized by bash) in your vault name (eg an ampersand or exclamation point etc), if I remember correctly, it gave Tasker some issues, but you can probably get around that issue if you try. I don't know how spaces will behave.
-10. Run the following command to apply a fix for [Git corruption issues](https://github.com/DovieW/obsidian-android-sync/issues/7): `"${HOME}/worktree-fix.sh"`
+   ```bash
+   git clone https://github.com/DovieW/obsidian-android-sync.git \
+     ~/storage/shared/repos/obsidian-android-sync
+   ```
 
-At this point, you can run `sync` to sync all the vaults in the `/storage/emulated/0/repos/Obsidian` folder. There will be no output if successful.
+6. Edit paths if needed, then run setup from the clone:
+
+   ```bash
+   bash ~/storage/shared/repos/obsidian-android-sync/setup
+   ```
+
+   Setup installs scripts to `~/.obsidian_android_sync_state/bin/`, seeds `.env` from `.env.example` if missing, checks storage access, and enables `allow-external-apps` in `~/.termux/termux.properties` (idempotent).
+
+7. **SSH key** (manual — not done by setup):
+
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
+   cat ~/.ssh/id_ed25519.pub   # add to GitHub/GitLab SSH keys
+   ssh -T git@github.com       # optional test
+   ```
+
+   For older guides using RSA: `ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""`.
+
+8. Optional git settings (manual):
+
+   ```bash
+   git config --global --add safe.directory '*'
+   git config --global core.editor nano
+   git config --global merge.conflictstyle diff3
+   ```
+
+9. Create your vault parent folder if it does not exist, then clone vaults into `OBSIDIAN_DIR_PATH` (default `/storage/emulated/0/repos/Obsidian`). Avoid special characters in vault names if using Tasker.
+
+10. Run worktree-fix once (fixes [Git corruption on shared storage](https://github.com/DovieW/obsidian-android-sync/issues/7)):
+
+    ```bash
+    ~/.obsidian_android_sync_state/bin/worktree-fix.sh
+    ```
+
+11. Sync manually:
+
+    ```bash
+    ~/.obsidian_android_sync_state/bin/sync-vaults.sh --skip-pause
+    ```
+
+    Optional shell aliases: add `source ~/.obsidian_android_sync_state/bin/env.sh` to your own `~/.bashrc` (not created by setup).
+
+## Upgrade from old install
+
+If you previously copied scripts into `$HOME` and used the old setup:
+
+1. Pull this repo and run `bash /path/to/obsidian-android-sync/setup`
+2. Run `~/.obsidian_android_sync_state/bin/migrate-from-legacy.sh` (`--dry-run` first optional)
+3. Re-import [Obsidian_Syncing.prj.xml](Obsidian_Syncing.prj.xml) into Tasker (paths now point at `bin/`)
+
 ## Tasker Setup
-1. Install [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm&hl=en_US&gl=US) from the Play Store.
-2. Enable the Termux permission in the settings for the Tasker app.
-3. Open the Obsidian app and add your vaults from the `repos/Obsidian` folder.
-4. If you're using the [Obsidian Git plugin](https://github.com/Vinzent03/obsidian-git), you should disable it for this device. You can do this in the plugin settings.
-5. Import the "Tasker project" into Tasker. You can import the project in 2 ways. You can use this [TaskerNet link](https://taskernet.com/shares/?user=AS35m8n3cQwLQVpqM%2Fik6LZsANJ%2F8SkOXbatTM3JXxEQY4KYaxES06TbTgTRcO7ziHKZXfzQKT1B&id=Project%3AObsidian+Syncing), or you can import ([image](https://imgur.com/a/Fvyl8HF)) the .xml file from this repository. Once it's imported, there will be some prompts, I think one for giving Tasker "Usage Access" and one to enable all profiles. Accept all.
-6. Give Termux the "Display over other apps" permission.
-7. Add the Vault launch icons as Tasker widgets (use the widget type that allows you to add them to folders) to the home screen. Also, add the 3 helper tasks as widgets (as needed): 
-   1. Sync Vaults   - syncs all vaults (now without output [see](https://github.com/DovieW/obsidian-android-sync/issues/2)
-   2. Vaults Status - outputs the `git fetch && git status` of each vault
-   3. Sync Log      - outputs the sync log
 
-All vaults will sync at 4am every day using a Tasker profile.
+1. Install [Tasker](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm).
+2. Enable the Termux permission for Tasker.
+3. Open Obsidian and add vaults from `OBSIDIAN_DIR_PATH`.
+4. Disable the [Obsidian Git plugin](https://github.com/Vinzent03/obsidian-git) on this device if you use it elsewhere.
+5. Import the Tasker project from [TaskerNet](https://taskernet.com/shares/?user=AS35m8n3cQwLQVpqM%2Fik6LZsANJ%2F8SkOXbatTM3JXxEQY4KYaxES06TbTgTRcO7ziHKZXfzQKT1B&id=Project%3AObsidian+Syncing) or from `Obsidian_Syncing.prj.xml` in this repo.
+6. Give Termux “Display over other apps” permission.
+7. Add Tasker widgets for vault launchers and helpers (sync, status, log).
+
+Tasker runs executables under:
+
+`/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/`
+
+Sync error notifications watch `sync-error-notification` on shared storage (`/storage/emulated/0/`).
+
 ## Notes
-- You should get a notification if a sync fails. This requires AutoNotification from the PlayStore. To disable this, disable the Sync Error Notification profile. ([not working currently](https://github.com/DovieW/obsidian-android-sync/issues/3))
-- If this repository has new commits that you want, running the `setup` command should pull them down. After which, you may be prompted to run a command to update the setup script itself, if it was updated.
+
+- Re-run `~/.obsidian_android_sync_state/bin/setup` to pull script updates from `SCRIPTS_REPO_PATH`.
+- Sync log: `~/.obsidian_android_sync_state/sync.log` (view with `list-log.sh`).
+- Failed syncs append to the notification file on shared storage ([issue #3](https://github.com/DovieW/obsidian-android-sync/issues/3) — AutoNotification).

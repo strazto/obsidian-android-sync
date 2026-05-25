@@ -1,27 +1,22 @@
 #!/data/data/com.termux/files/usr/bin/bash
-source /data/data/com.termux/files/usr/etc/bash.bashrc
+# shellcheck source=config.sh
+source "$(dirname "$0")/config.sh"
 
-log="$HOME/sync.log"
-
-# Start an infinite loop
 while true; do
-    clear # Clear the screen
+    clear
 
-    # Check if log file exists
-    if [[ -f $log ]]; then
-        \cat $HOME/sync.log
+    if [[ -f "$LOG_FILE" ]]; then
+        \cat "$LOG_FILE"
     else
         echo "No log yet..."
     fi
 
-    # Prompt the user
     echo -e '\n\033[44;97mPress R to reload or Enter to exit...\033[0m'
-    read -r -n 1 -s input # Read a single character in silent mode
+    read -r -n 1 -s input
 
-    # Check if the input is Enter (empty)
     if [[ -z $input ]]; then
-        break # Exit the loop (and the script)
-    elif [[ $input == "r" ]] || [[ $input == "R" ]]; then
-        continue # Continue the loop (reload)
+        break
+    elif [[ $input == "r" || $input == "R" ]]; then
+        continue
     fi
 done

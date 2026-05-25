@@ -344,7 +344,7 @@ For full setup, see &lt;a href="https://github.com/DovieW/obsidian-android-sync"
 					<net.dinglisch.android.tasker.RELEVANT_VARIABLES-type>[Ljava.lang.String;</net.dinglisch.android.tasker.RELEVANT_VARIABLES-type>
 				</Vals>
 			</Bundle>
-			<Str sr="arg1" ve="3">TermuxCommand(/data/data/com.termux/files/home/sync-vaults.sh,%par1,,true)</Str>
+			<Str sr="arg1" ve="3">TermuxCommand(/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/sync-vaults.sh,%par1,,true)</Str>
 		</Action>
 	</Task>
 	<Task sr="task466">
@@ -661,7 +661,7 @@ Only available if you select &amp;lt;b&amp;gt;Continue Task After Error&amp;lt;/
 					<net.dinglisch.android.tasker.RELEVANT_VARIABLES-type>[Ljava.lang.String;</net.dinglisch.android.tasker.RELEVANT_VARIABLES-type>
 				</Vals>
 			</Bundle>
-			<Str sr="arg1" ve="3">TermuxCommand(/data/data/com.termux/files/home/open-vault.sh,%par1,,true)</Str>
+			<Str sr="arg1" ve="3">TermuxCommand(/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/open-vault.sh,%par1,,true)</Str>
 		</Action>
 		<Action sr="act1" ve="7">
 			<code>20</code>
@@ -720,7 +720,7 @@ Only available if you select &amp;lt;b&amp;gt;Continue Task After Error&amp;lt;/
 					<com.termux.execute.arguments-type>java.lang.String</com.termux.execute.arguments-type>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>&lt;null&gt;</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>java.lang.String</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>
-					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/vaults-status.sh</com.termux.tasker.extra.EXECUTABLE>
+					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/vaults-status.sh</com.termux.tasker.extra.EXECUTABLE>
 					<com.termux.tasker.extra.EXECUTABLE-type>java.lang.String</com.termux.tasker.extra.EXECUTABLE-type>
 					<com.termux.tasker.extra.SESSION_ACTION>&lt;null&gt;</com.termux.tasker.extra.SESSION_ACTION>
 					<com.termux.tasker.extra.SESSION_ACTION-type>java.lang.String</com.termux.tasker.extra.SESSION_ACTION-type>
@@ -732,9 +732,9 @@ Only available if you select &amp;lt;b&amp;gt;Continue Task After Error&amp;lt;/
 					<com.termux.tasker.extra.VERSION_CODE-type>java.lang.Integer</com.termux.tasker.extra.VERSION_CODE-type>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT>false</com.termux.tasker.extra.WAIT_FOR_RESULT>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT-type>java.lang.Boolean</com.termux.tasker.extra.WAIT_FOR_RESULT-type>
-					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home</com.termux.tasker.extra.WORKDIR>
+					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home/.obsidian_android_sync_state</com.termux.tasker.extra.WORKDIR>
 					<com.termux.tasker.extra.WORKDIR-type>java.lang.String</com.termux.tasker.extra.WORKDIR-type>
-					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/vaults-status.sh
+					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/vaults-status.sh
 
 Working Directory ✓
 Terminal Session ✓
@@ -771,7 +771,7 @@ Wait For Result ✕</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.execute.arguments-type>java.lang.String</com.termux.execute.arguments-type>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>&lt;null&gt;</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>java.lang.String</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>
-					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/list-log.sh</com.termux.tasker.extra.EXECUTABLE>
+					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/list-log.sh</com.termux.tasker.extra.EXECUTABLE>
 					<com.termux.tasker.extra.EXECUTABLE-type>java.lang.String</com.termux.tasker.extra.EXECUTABLE-type>
 					<com.termux.tasker.extra.SESSION_ACTION>&lt;null&gt;</com.termux.tasker.extra.SESSION_ACTION>
 					<com.termux.tasker.extra.SESSION_ACTION-type>java.lang.String</com.termux.tasker.extra.SESSION_ACTION-type>
@@ -783,9 +783,9 @@ Wait For Result ✕</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.tasker.extra.VERSION_CODE-type>java.lang.Integer</com.termux.tasker.extra.VERSION_CODE-type>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT>false</com.termux.tasker.extra.WAIT_FOR_RESULT>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT-type>java.lang.Boolean</com.termux.tasker.extra.WAIT_FOR_RESULT-type>
-					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home</com.termux.tasker.extra.WORKDIR>
+					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home/.obsidian_android_sync_state</com.termux.tasker.extra.WORKDIR>
 					<com.termux.tasker.extra.WORKDIR-type>java.lang.String</com.termux.tasker.extra.WORKDIR-type>
-					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/list-log.sh
+					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/list-log.sh
 
 Working Directory ✓
 Terminal Session ✓
@@ -832,7 +832,7 @@ Wait For Result ✕</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.execute.arguments-type>java.lang.String</com.termux.execute.arguments-type>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>&lt;null&gt;</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>java.lang.String</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>
-					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/sync-vaults.sh</com.termux.tasker.extra.EXECUTABLE>
+					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/sync-vaults.sh</com.termux.tasker.extra.EXECUTABLE>
 					<com.termux.tasker.extra.EXECUTABLE-type>java.lang.String</com.termux.tasker.extra.EXECUTABLE-type>
 					<com.termux.tasker.extra.SESSION_ACTION>&lt;null&gt;</com.termux.tasker.extra.SESSION_ACTION>
 					<com.termux.tasker.extra.SESSION_ACTION-type>java.lang.String</com.termux.tasker.extra.SESSION_ACTION-type>
@@ -844,9 +844,9 @@ Wait For Result ✕</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.tasker.extra.VERSION_CODE-type>java.lang.Integer</com.termux.tasker.extra.VERSION_CODE-type>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT>false</com.termux.tasker.extra.WAIT_FOR_RESULT>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT-type>java.lang.Boolean</com.termux.tasker.extra.WAIT_FOR_RESULT-type>
-					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home</com.termux.tasker.extra.WORKDIR>
+					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home/.obsidian_android_sync_state</com.termux.tasker.extra.WORKDIR>
 					<com.termux.tasker.extra.WORKDIR-type>java.lang.String</com.termux.tasker.extra.WORKDIR-type>
-					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/sync-vaults.sh --skip-pause
+					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/sync-vaults.sh --skip-pause
 
 Working Directory ✓
 Stdin ✕
@@ -875,7 +875,7 @@ Terminal</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.execute.arguments-type>java.lang.String</com.termux.execute.arguments-type>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>&lt;null&gt;</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL>
 					<com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>java.lang.String</com.termux.tasker.extra.BACKGROUND_CUSTOM_LOG_LEVEL-type>
-					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/sync-vaults.sh</com.termux.tasker.extra.EXECUTABLE>
+					<com.termux.tasker.extra.EXECUTABLE>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/sync-vaults.sh</com.termux.tasker.extra.EXECUTABLE>
 					<com.termux.tasker.extra.EXECUTABLE-type>java.lang.String</com.termux.tasker.extra.EXECUTABLE-type>
 					<com.termux.tasker.extra.SESSION_ACTION>&lt;null&gt;</com.termux.tasker.extra.SESSION_ACTION>
 					<com.termux.tasker.extra.SESSION_ACTION-type>java.lang.String</com.termux.tasker.extra.SESSION_ACTION-type>
@@ -887,9 +887,9 @@ Terminal</com.twofortyfouram.locale.intent.extra.BLURB>
 					<com.termux.tasker.extra.VERSION_CODE-type>java.lang.Integer</com.termux.tasker.extra.VERSION_CODE-type>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT>false</com.termux.tasker.extra.WAIT_FOR_RESULT>
 					<com.termux.tasker.extra.WAIT_FOR_RESULT-type>java.lang.Boolean</com.termux.tasker.extra.WAIT_FOR_RESULT-type>
-					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home</com.termux.tasker.extra.WORKDIR>
+					<com.termux.tasker.extra.WORKDIR>/data/data/com.termux/files/home/.obsidian_android_sync_state</com.termux.tasker.extra.WORKDIR>
 					<com.termux.tasker.extra.WORKDIR-type>java.lang.String</com.termux.tasker.extra.WORKDIR-type>
-					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/sync-vaults.sh
+					<com.twofortyfouram.locale.intent.extra.BLURB>/data/data/com.termux/files/home/.obsidian_android_sync_state/bin/sync-vaults.sh
 
 Working Directory ✓
 Terminal Session ✓

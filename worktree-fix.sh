@@ -1,56 +1,41 @@
-#!/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-# Colors for echo commands
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+# shellcheck source=config.sh
+source "$(dirname "$0")/config.sh"
 
-# Source and destination paths
-SOURCE_PATH="/storage/emulated/0/repos/Obsidian"
-DEST_PATH="$HOME/repos/Obsidian"
+echo -e "${YELLOW}Creating destination directory at $GIT_REPOS_PATH if it doesn't exist...${RESET}"
+mkdir -p "$GIT_REPOS_PATH"
 
-# Create the destination directory if it doesn't exist
-echo -e "${YELLOW}Creating destination directory at $DEST_PATH if it doesn't exist...${NC}"
-mkdir -p "$DEST_PATH"
+for repo in "$OBSIDIAN_DIR_PATH"/*; do
+  if [[ -d "$repo/.git" ]]; then
 
-# Move all repositories from source to destination
-for repo in "$SOURCE_PATH"/*; do
-  if [ -d "$repo/.git" ]; then
-
-    if [ -f "$repo/.git" ]; then
+    if [[ -f "$repo/.git" ]]; then
       echo "$repo is a worktree. Skipping."
       continue
     fi
-  
-    # Get the name of the repository
+
     repo_name=$(basename "$repo")
 
-    # Move the repository
-    echo -e "${YELLOW}Moving repository $repo_name to $DEST_PATH...${NC}"
-    mv "$repo" "$DEST_PATH/"
+    echo -e "${YELLOW}Moving repository $repo_name to $GIT_REPOS_PATH...${RESET}"
+    mv "$repo" "$GIT_REPOS_PATH/"
 
-    # Change to the repository directory
-    echo -e "${YELLOW}Changing to the repository directory $DEST_PATH/$repo_name...${NC}"
-    cd "$DEST_PATH/$repo_name" || exit
+    echo -e "${YELLOW}Changing to the repository directory $GIT_REPOS_PATH/$repo_name...${RESET}"
+    cd "$GIT_REPOS_PATH/$repo_name" || exit
 
-    # Get the current branch name
     current_branch=$(git rev-parse --abbrev-ref HEAD)
 
     git switch -c empty
     git add -A
-    git commit --allow-empty --message "delete" # specifically so code-server doesn't show thousands of changes in the Git tab when opening vscode at /
+    git commit --allow-empty --message "delete"
 
-    # Remove all files and directories except the .git directory
-    echo -e "${YELLOW}Removing all files from the working directory of $repo_name except the .git directory...${NC}"
+    echo -e "${YELLOW}Removing all files from the working directory of $repo_name except the .git directory...${RESET}"
     find . -mindepth 1 \( -not -path "./.git" -a -not -path "./.git/*" \) -exec rm -rf {} +
 
-    # Create a worktree for the repo back to the original location, checked out to the default branch
-    echo -e "${YELLOW}Creating a worktree for $repo_name back to the original location at $SOURCE_PATH/$repo_name, checked out to $current_branch...${NC}"
-    mkdir -p "$SOURCE_PATH/$repo_name"
-    git worktree add "$SOURCE_PATH/$repo_name" "$current_branch"
+    echo -e "${YELLOW}Creating a worktree for $repo_name back to $OBSIDIAN_DIR_PATH/$repo_name on $current_branch...${RESET}"
+    mkdir -p "$OBSIDIAN_DIR_PATH/$repo_name"
+    git worktree add "$OBSIDIAN_DIR_PATH/$repo_name" "$current_branch"
   fi
 done
 
-echo -e "${GREEN}All repositories have been moved and worktrees created.${NC}"
-
+echo -e "${GREEN}All repositories have been moved and worktrees created.${RESET}"
