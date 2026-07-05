@@ -27,15 +27,14 @@ All app state and scripts live under a fixed directory (not configurable — Tas
   sync-vaults.lock
   tmp/
   git-repos/           # bare git objects after worktree-fix
-  bin/                 # installed scripts (run setup to populate)
+  bin/                 # canonical scripts checkout
 ```
 
-Configure vault and script-repo locations in `~/.obsidian_android_sync_state/.env`:
+Configure vault locations in `~/.obsidian_android_sync_state/.env`:
 
-- `SCRIPTS_REPO_PATH` — git clone of this repository (any path)
 - `OBSIDIAN_DIR_PATH` — folder where Obsidian opens vaults (worktree checkouts)
 
-These paths are independent; they do not need to share a parent directory.
+The scripts checkout does not need to live in Android shared storage. The vault path does, because Obsidian needs to read and write those files.
 
 ## Termux Setup (fresh install)
 
@@ -45,20 +44,20 @@ These paths are independent; they do not need to share a parent directory.
    The next steps are run in Termux.
 3. Run `termux-setup-storage` and grant file access.
 4. Run `pkg update && pkg upgrade -y && pkg install -y git openssh termux-api`.
-5. Clone this repo anywhere (example path):
+5. Clone this repo anywhere for the initial install (example path):
 
    ```bash
    git clone https://github.com/DovieW/obsidian-android-sync.git \
-     ~/storage/shared/repos/obsidian-android-sync
+     ~/obsidian-android-sync
    ```
 
 6. Edit paths if needed, then run setup from the clone:
 
    ```bash
-   bash ~/storage/shared/repos/obsidian-android-sync/setup
+   bash ~/obsidian-android-sync/setup
    ```
 
-   Setup installs scripts to `~/.obsidian_android_sync_state/bin/`, seeds `.env` from `.env.example` if missing, checks storage access, and enables `allow-external-apps` in `~/.termux/termux.properties` (idempotent).
+   Setup installs or updates the canonical scripts checkout at `~/.obsidian_android_sync_state/bin/`, seeds `.env` from `.env.example` if missing, checks storage access, and enables `allow-external-apps` in `~/.termux/termux.properties` (idempotent). If you already cloned this repo to `~/.obsidian_android_sync_state/bin/`, setup treats that as the installed checkout and updates it in place.
 
 7. **SSH key** (manual — not done by setup):
 
@@ -120,6 +119,6 @@ Sync error notifications watch `sync-error-notification` on shared storage (`/st
 
 ## Notes
 
-- Re-run `~/.obsidian_android_sync_state/bin/setup` to pull script updates from `SCRIPTS_REPO_PATH`.
+- Re-run `~/.obsidian_android_sync_state/bin/setup` to pull script updates in the canonical checkout.
 - Sync log: `~/.obsidian_android_sync_state/sync.log` (view with `list-log.sh`).
 - Failed syncs append to the notification file on shared storage ([issue #3](https://github.com/DovieW/obsidian-android-sync/issues/3) — AutoNotification).

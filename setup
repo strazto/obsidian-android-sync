@@ -15,26 +15,19 @@ bootstrap_config() {
     return
   fi
 
-  export STORAGE_PATH="/storage/emulated/0"
-  export NOTIFICATION_PATH="$STORAGE_PATH/sync-error-notification"
   STATE_DIR="$HOME/.obsidian_android_sync_state"
   INSTALL_BIN="$STATE_DIR/bin"
-  export SCRIPTS_REPO_PATH="${SCRIPTS_REPO_PATH:-$_script_dir}"
+  export STORAGE_PATH="/storage/emulated/0"
+  export NOTIFICATION_PATH="$STORAGE_PATH/sync-error-notification"
   export OBSIDIAN_DIR_PATH="${OBSIDIAN_DIR_PATH:-/storage/emulated/0/repos/Obsidian}"
-  mkdir -p "$STATE_DIR/tmp" "$STATE_DIR/git-repos" "$INSTALL_BIN"
+  mkdir -p "$STATE_DIR/tmp" "$STATE_DIR/git-repos"
   export LOCK_FILE="$STATE_DIR/sync-vaults.lock"
   export LOG_FILE="$STATE_DIR/sync.log"
   export SYNC_TMP_DIR="$STATE_DIR/tmp"
   export GIT_REPOS_PATH="$STATE_DIR/git-repos"
   export RESET="\033[0m" GREEN="\033[1;32m" RED="\033[1;31m" BLUE="\033[1;34m" YELLOW="\033[1;33m"
 
-  if [[ ! -f "$STATE_DIR/.env" && -f "$SCRIPTS_REPO_PATH/.env.example" ]]; then
-    cp "$SCRIPTS_REPO_PATH/.env.example" "$STATE_DIR/.env"
-    set -a
-    # shellcheck source=/dev/null
-    source "$STATE_DIR/.env"
-    set +a
-  elif [[ -f "$STATE_DIR/.env" ]]; then
+  if [[ -f "$STATE_DIR/.env" ]]; then
     set -a
     # shellcheck source=/dev/null
     source "$STATE_DIR/.env"
@@ -43,6 +36,20 @@ bootstrap_config() {
 }
 
 bootstrap_config
+
+seed_env() {
+  local template_dir=$1
+  mkdir -p "$STATE_DIR"
+  if [[ ! -f "$STATE_DIR/.env" && -f "$template_dir/.env.example" ]]; then
+    cp "$template_dir/.env.example" "$STATE_DIR/.env"
+  fi
+  if [[ -f "$STATE_DIR/.env" ]]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$STATE_DIR/.env"
+    set +a
+  fi
+}
 
 enable_allow_external_apps() {
   local props="$HOME/.termux/termux.properties"
@@ -58,24 +65,111 @@ enable_allow_external_apps() {
   termux-reload-settings
 }
 
-### Update scripts repo
-
-cd "$SCRIPTS_REPO_PATH"
-git fetch > /dev/null
-git_status=$(git status)
-
-if [[ "$git_status" == *"Your branch is behind"* ]]; then
-  if [[ "$git_status" == *"Changes not staged for commit"* || "$git_status" == *"Changes to be committed"* ]]; then
-    echo -e "${RED}There are local changes in the scripts repo which would block a git pull. Just be aware that you're missing updates. Continuing script...${RESET}"
+git_remote_or_path() {
+  local repo_dir=$1
+  local remote
+  remote="$(git -C "$repo_dir" config --get remote.origin.url 2>/dev/null || true)"
+  if [[ -n "$remote" ]]; then
+    printf '%s\n' "$remote"
   else
-    if git pull > /dev/null 2>&1; then
-      echo -e "${GREEN}Updated the scripts repo!${RESET}"
-    else
-      echo -e "${RED}Failed to update the scripts repo.${RESET}"
-      exit 1
-    fi
+    printf '%s\n' "$repo_dir"
   fi
-fi
+}
+
+find_install_source() {
+  if git -C "$_script_dir" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    git_remote_or_path "$_script_dir"
+    return
+  fi
+
+  # Legacy .env files may still define SCRIPTS_REPO_PATH; use it only to migrate.
+  if [[ -n "${SCRIPTS_REPO_PATH:-}" ]] && git -C "$SCRIPTS_REPO_PATH" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    git_remote_or_path "$SCRIPTS_REPO_PATH"
+    return
+  fi
+
+  echo -e "${RED}Could not find a Git source to install from.${RESET}" >&2
+  echo -e "${BLUE}Clone this repository, then run setup from that clone.${RESET}" >&2
+  exit 1
+}
+
+update_canonical_checkout() {
+  if ! git -C "$INSTALL_BIN" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' > /dev/null 2>&1; then
+    echo -e "${YELLOW}Canonical scripts checkout has no upstream; skipping update.${RESET}"
+    return
+  fi
+
+  git -C "$INSTALL_BIN" fetch > /dev/null
+  if [[ -n "$(git -C "$INSTALL_BIN" status --porcelain)" ]]; then
+    echo -e "${RED}There are local changes in the canonical scripts checkout, so setup will not pull updates.${RESET}"
+    return
+  fi
+
+  local local_ref upstream_ref
+  local_ref="$(git -C "$INSTALL_BIN" rev-parse HEAD)"
+  upstream_ref="$(git -C "$INSTALL_BIN" rev-parse '@{upstream}')"
+
+  if [[ "$local_ref" == "$upstream_ref" ]]; then
+    echo -e "${GREEN}Canonical scripts checkout is up to date.${RESET}"
+    return
+  fi
+
+  if ! git -C "$INSTALL_BIN" merge-base --is-ancestor HEAD '@{upstream}' > /dev/null 2>&1; then
+    echo -e "${RED}Canonical scripts checkout has diverged from upstream; setup will not pull updates.${RESET}"
+    exit 1
+  fi
+
+  if git -C "$INSTALL_BIN" pull --ff-only > /dev/null 2>&1; then
+    echo -e "${GREEN}Updated the canonical scripts checkout.${RESET}"
+  else
+    echo -e "${RED}Failed to update the canonical scripts checkout.${RESET}"
+    exit 1
+  fi
+}
+
+install_canonical_checkout() {
+  mkdir -p "$STATE_DIR"
+
+  if [[ -d "$INSTALL_BIN" ]] && git -C "$INSTALL_BIN" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    update_canonical_checkout
+    return
+  fi
+
+  if [[ -d "$INSTALL_BIN" && -z "$(ls -A "$INSTALL_BIN" 2>/dev/null || true)" ]]; then
+    rmdir "$INSTALL_BIN"
+  fi
+
+  if [[ ! -e "$INSTALL_BIN" ]]; then
+    local source
+    source="$(find_install_source)"
+    echo -e "${BLUE}Installing canonical scripts checkout to $INSTALL_BIN${RESET}"
+    git clone "$source" "$INSTALL_BIN" > /dev/null
+    return
+  fi
+
+  local backup_dir
+  backup_dir="$STATE_DIR/bin.backup.$(date +%Y%m%d%H%M%S)"
+  echo -e "${YELLOW}Backing up existing non-Git scripts directory to $backup_dir${RESET}"
+  mv "$INSTALL_BIN" "$backup_dir"
+
+  local source
+  source="$(find_install_source)"
+  echo -e "${BLUE}Installing canonical scripts checkout to $INSTALL_BIN${RESET}"
+  if ! git clone "$source" "$INSTALL_BIN" > /dev/null; then
+    mv "$backup_dir" "$INSTALL_BIN"
+    echo -e "${RED}Failed to install canonical scripts checkout; restored previous bin directory.${RESET}"
+    exit 1
+  fi
+}
+
+seed_env "$_script_dir"
+install_canonical_checkout
+seed_env "$INSTALL_BIN"
+
+# Re-source config from the canonical checkout.
+unset OBSIDIAN_SYNC_CONFIG_LOADED
+# shellcheck source=config.sh
+source "$INSTALL_BIN/config.sh"
 
 ### Make sure Termux has file permissions
 
@@ -89,44 +183,6 @@ fi
 ### Enable allow-external-apps (idempotent)
 
 enable_allow_external_apps
-
-### Install to STATE_DIR/bin
-
-INSTALL_ARTIFACTS=(
-  config.sh
-  env.sh
-  setup
-  sync-vaults.sh
-  list-log.sh
-  vaults-status.sh
-  open-vault.sh
-  git-sync
-  worktree-fix.sh
-  log_helper.sh
-  migrate-from-legacy.sh
-)
-
-mkdir -p "$INSTALL_BIN"
-for artifact in "${INSTALL_ARTIFACTS[@]}"; do
-  if [[ ! -f "$SCRIPTS_REPO_PATH/$artifact" ]]; then
-    echo -e "${RED}Missing $SCRIPTS_REPO_PATH/$artifact${RESET}" >&2
-    exit 1
-  fi
-  cp "$SCRIPTS_REPO_PATH/$artifact" "$INSTALL_BIN/"
-  chmod +x "$INSTALL_BIN/$artifact"
-done
-
-# Re-source config from installed location
-# shellcheck source=config.sh
-source "$INSTALL_BIN/config.sh"
-
-if [[ ! -f "$STATE_DIR/.env" ]]; then
-  cp "$SCRIPTS_REPO_PATH/.env.example" "$STATE_DIR/.env"
-  set -a
-  # shellcheck source=/dev/null
-  source "$STATE_DIR/.env"
-  set +a
-fi
 
 ### Make sure user.name and user.email is populated
 
@@ -148,11 +204,12 @@ touch "$NOTIFICATION_PATH"
 cd "$OBSIDIAN_DIR_PATH"
 
 echo -e "\n${GREEN}Setup complete${RESET}"
-echo -e "Scripts installed to: ${BLUE}$INSTALL_BIN${RESET}"
+echo -e "Scripts checkout: ${BLUE}$INSTALL_BIN${RESET}"
 echo -e "Config: ${BLUE}$STATE_DIR/.env${RESET}"
+echo -e "Vault parent: ${BLUE}$OBSIDIAN_DIR_PATH${RESET}"
 echo -e "Optional shell shortcuts: ${BLUE}source $INSTALL_BIN/env.sh${RESET} (add to your ~/.bashrc)"
 echo -e "Re-import the Tasker project from this repo's Obsidian_Syncing.prj.xml"
-if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
+if [[ ! -f "$HOME/.ssh/id_rsa" && ! -f "$HOME/.ssh/id_ed25519" ]]; then
   echo -e "${YELLOW}Create an SSH key before cloning vaults — see README${RESET}"
 fi
 echo -e "Upgrading from an old install? Run: ${BLUE}$INSTALL_BIN/migrate-from-legacy.sh${RESET}\n"
