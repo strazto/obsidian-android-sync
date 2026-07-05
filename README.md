@@ -57,7 +57,7 @@ The scripts checkout does not need to live in Android shared storage. The vault 
    bash ~/obsidian-android-sync/setup
    ```
 
-   Setup installs or updates the canonical scripts checkout at `~/.obsidian_android_sync_state/bin/`, seeds `.env` from `.env.example` if missing, checks storage access, and enables `allow-external-apps` in `~/.termux/termux.properties` (idempotent). If you already cloned this repo to `~/.obsidian_android_sync_state/bin/`, setup treats that as the installed checkout and updates it in place.
+   Setup installs or updates the canonical scripts checkout at `~/.obsidian_android_sync_state/bin/`, seeds `.env` from `.env.example` if missing, checks storage access, configures Git identity locally for known repos, and enables `allow-external-apps` in `~/.termux/termux.properties` (idempotent). If you already cloned this repo to `~/.obsidian_android_sync_state/bin/`, setup treats that as the installed checkout and updates it in place.
 
 7. **SSH key** (manual — not done by setup):
 
@@ -78,6 +78,8 @@ The scripts checkout does not need to live in Android shared storage. The vault 
    ```
 
 9. Create your vault parent folder if it does not exist, then clone vaults into `OBSIDIAN_DIR_PATH` (default `/storage/emulated/0/repos/Obsidian`). Avoid special characters in vault names if using Tasker.
+
+   Re-run setup after cloning vaults if you want it to configure `user.name` and `user.email` locally in each vault repo. Setup does not require global Git identity.
 
 10. Run worktree-fix once (fixes [Git corruption on shared storage](https://github.com/DovieW/obsidian-android-sync/issues/7)):
 

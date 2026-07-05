@@ -162,6 +162,62 @@ install_canonical_checkout() {
   fi
 }
 
+configure_repo_git_identity() {
+  local repo_dir=$1
+  local label=$2
+  local answer git_name git_email
+
+  git_name="$(git -C "$repo_dir" config --local user.name 2>/dev/null || true)"
+  git_email="$(git -C "$repo_dir" config --local user.email 2>/dev/null || true)"
+
+  if [[ -z "$git_name" ]]; then
+    git_name="$(git config --global user.name 2>/dev/null || true)"
+    if [[ -n "$git_name" ]]; then
+      read -r -p "Enter git user.name for $label [$git_name]: " answer
+      git_name="${answer:-$git_name}"
+    else
+      while [[ -z "$git_name" ]]; do
+        read -r -p "Enter git user.name for $label: " git_name
+      done
+    fi
+    git -C "$repo_dir" config --local user.name "$git_name"
+  fi
+
+  if [[ -z "$git_email" ]]; then
+    git_email="$(git config --global user.email 2>/dev/null || true)"
+    if [[ -n "$git_email" ]]; then
+      read -r -p "Enter git user.email for $label [$git_email]: " answer
+      git_email="${answer:-$git_email}"
+    else
+      while [[ -z "$git_email" ]]; do
+        read -r -p "Enter git user.email for $label: " git_email
+      done
+    fi
+    git -C "$repo_dir" config --local user.email "$git_email"
+  fi
+}
+
+configure_git_identities() {
+  configure_repo_git_identity "$INSTALL_BIN" "scripts checkout"
+
+  if [[ ! -d "$OBSIDIAN_DIR_PATH" ]]; then
+    return
+  fi
+
+  local repo found_vault_repo=false
+  for repo in "$OBSIDIAN_DIR_PATH"/*; do
+    [[ -d "$repo" ]] || continue
+    if git -C "$repo" rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      found_vault_repo=true
+      configure_repo_git_identity "$repo" "vault $(basename "$repo")"
+    fi
+  done
+
+  if ! $found_vault_repo; then
+    echo -e "${YELLOW}No vault Git repos found yet; run setup again after cloning vaults to configure local Git identity.${RESET}"
+  fi
+}
+
 seed_env "$_script_dir"
 install_canonical_checkout
 seed_env "$INSTALL_BIN"
@@ -184,20 +240,9 @@ fi
 
 enable_allow_external_apps
 
-### Make sure user.name and user.email is populated
+### Make sure local git identities are populated without requiring global config
 
-git_name=$(git config --global user.name 2>/dev/null || true)
-git_email=$(git config --global user.email 2>/dev/null || true)
-
-if [[ -z "$git_name" ]]; then
-  read -p "Enter your git user.name: " git_name
-  git config --global user.name "$git_name"
-fi
-
-if [[ -z "$git_email" ]]; then
-  read -p "Enter your git user.email: " git_email
-  git config --global user.email "$git_email"
-fi
+configure_git_identities
 
 touch "$NOTIFICATION_PATH"
 
